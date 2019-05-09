@@ -1,0 +1,20 @@
+{
+  "name": "css-only-chat",
+  "version": "1.0.0",
+  "description": "A chatroom built without JavaScript.",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server"
+  },
+  "keywords": [
+    "css-only",
+    "chatroom",
+    "chat"
+  ],
+  "author": "Andres Sweeney-Rios",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.4",
+    "nodemon": "^1.19.0"
+  }
+}
