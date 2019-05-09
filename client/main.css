@@ -4,17 +4,39 @@
     font-family: sans-serif;
 }
 
-.submit:focus {
-    background-image: url('http://localhost:8000/send?text=def');
-    background-color: red;
-}
-
-.submit {
-    width: 60px;
-    height: 60px;
-}
-
 body {
     background-color: rgb(20,20,20);
     color: white;
+    white-space: nowrap;
+}
+
+.key-row {
+    display: flex;
+    justify-content: center;
+    width: 100vw
+}
+
+.keys button {
+    width: 9vw;
+    height: 9vw;
+    max-width: 5em;
+    max-height: 5em;
+    background-color: rgb(40,40,40);
+    color: white;
+    border: none;
+    border: 1px solid rgb(20,20,20);
+}
+
+.keys button:hover {
+    background-color: rgb(60,60,60);
+}
+
+.keys {
+    position: absolute;
+    bottom: 0;
+}
+
+.keys .spacebar {
+    width: 45vw;
+    max-width: 25em;
 }
