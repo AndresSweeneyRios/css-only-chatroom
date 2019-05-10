@@ -6,15 +6,30 @@ const cookies = require('cookie-parser')
 
 app.use(cookies())
 
+
+// this function is only used to grab main.css
+
 const getFile = async file => fs.readFileSync(path.join(`${__dirname}/${file}`))
+
+
+// uuid generation
 
 const id = () => Buffer.from(
     Math.floor(Math.random()* 9) + '' + Date.now()
 ).toString('base64').replace(/\=/g,'')
 
+
+// every connection made to the server, doesn't handle disconnects yet
+
 const connections = {}
 
+
+// message store
+
 const messages = []
+
+
+// generates keyboard layout and keys
 
 const keyboard = res => {
     res.write(`
@@ -54,22 +69,25 @@ const keyboard = res => {
     `)
 }
 
+
+// generates :focus and :active pseudoclasses to listen for keypresses
+
 const inputs = res => {
-    let styles = `
+    res.write(`
         <style>
         .keys${res.num-1}, .log${res.num-1}, .input${res.num-1} {
             display: none !important;
             pointer-events: none !important;
         }
-    `
+    `)
 
-    for (const i of 'abcdefghijklmnopqrstuvwxyz'.split('')) styles += `
+    for (const i of 'abcdefghijklmnopqrstuvwxyz'.split('')) res.write(`
         .${i+res.num}:focus, .${i+res.num}:active {
             background-image: url('http://localhost:8000/type?text=${i}&num=${res.num}');
         }
-    `
+    `)
 
-    styles += `
+    res.write(`
         .spacebar${res.num}:focus, .spacebar${res.num}:active {
             background-image: url('http://localhost:8000/type?text=%20&num=${res.num}'); 
         }
@@ -77,12 +95,12 @@ const inputs = res => {
         .submit${res.num}:focus, .submit${res.num}:active {
             background-image: url('http://localhost:8000/submit?num=${res.num}');
         }
-    `
-
-    styles += `</style>`
-
-    res.write(styles)
+        </style>
+    `)
 }
+
+
+// clears last screen and appends new html to replace it, happens on `type` and `submit`
 
 const refresh = ({req,res}) => {
     res.num = res.num || 0
@@ -112,38 +130,12 @@ const refresh = ({req,res}) => {
     `)
 }
 
-app.get('/type', async (req,res) => {
-    const connection = connections[req.cookies.chat_id]
-    connection.input += req.query.text
 
-    refresh(connection)
-
-    res.write('')
-    res.end()
-})
-
-app.get('/submit', async (req,res) => {
-    const _id = req.cookies.chat_id
-    const connection = connections[_id]
-
-    messages.push({
-        id: _id,
-        message: connection.input
-    })
-
-    if (messages.length > 50) 
-        messages.splice(0,1)
-
-    connections[_id].input = ''
-
-    for (const [_id, i] of Object.entries(connections))
-        refresh(i)
-
-    res.write('')
-    res.end()
-})
+// html render start
 
 app.get('/', async (req,res) => {
+    // generate id & connection object
+
     let _id = req.cookies.chat_id || id()
 
     if (!req.cookies.chat_id) {
@@ -157,8 +149,12 @@ app.get('/', async (req,res) => {
         input: ''
     }
 
+
+    // set appropriate headers
+
     res.setHeader('Content-Type', 'text/html')
     res.header('Transfer-encoding', 'chunked')
+
 
     // write generic css
 
@@ -170,6 +166,9 @@ app.get('/', async (req,res) => {
         </style>
     `)
 
+    
+    // start rendering
+
     res.flushHeaders()
 
     refresh({req,res})
@@ -177,13 +176,50 @@ app.get('/', async (req,res) => {
     setInterval(() => {
         res.write('')
     }, 2000)
+
+    // never stop
 })
 
-app.get('/main.css', (req,res) => {
-    res.sendFile(getFile('main.css'))
+
+// called when the submit key is pressed
+
+app.get('/submit', async (req,res) => {
+    const _id = req.cookies.chat_id
+    const connection = connections[_id]
+
+    messages.push({
+        id: _id,
+        message: connection.input
+    })
+
+    if (messages.length > 20) 
+        messages.splice(0,1)
+
+    connections[_id].input = ''
+
+    for (const i of Object.values(connections))
+        refresh(i)
+
+    res.send('')
+})
+
+
+// called when any other key is pressed
+
+app.get('/type', async (req,res) => {
+    const connection = connections[req.cookies.chat_id]
+    connection.input += req.query.text
+
+    refresh(connection)
+
+    res.send('')
 })
 
 const server = app.listen('8000')
+
+
+// we need it to load forever anyway, why timeout?
+
 server.keepAliveTimeout = 99999999
 
 console.log('Server listening on port 8000 (\x1b[36mhttp://localhost:8000\x1b[0m)')
