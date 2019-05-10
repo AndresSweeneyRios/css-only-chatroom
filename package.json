@@ -4,7 +4,8 @@
   "description": "A chatroom built without JavaScript.",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server"
+    "start": "node server",
+    "dev": "nodemon server"
   },
   "keywords": [
     "css-only",

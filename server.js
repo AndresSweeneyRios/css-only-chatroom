@@ -185,3 +185,5 @@ app.get('/main.css', (req,res) => {
 
 const server = app.listen('8000')
 server.keepAliveTimeout = 99999999
+
+console.log('Server listening on port 8000 (\x1b[36mhttp://localhost:8000\x1b[0m)')
