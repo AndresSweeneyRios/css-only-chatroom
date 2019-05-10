@@ -6,7 +6,7 @@ const cookies = require('cookie-parser')
 
 app.use(cookies())
 
-const getFile = async file => fs.readFileSync(path.join(`${__dirname}/client/${file}`))
+const getFile = async file => fs.readFileSync(path.join(`${__dirname}/${file}`))
 
 const id = () => Buffer.from(
     Math.floor(Math.random()* 9) + '' + Date.now()
