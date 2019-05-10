@@ -2,10 +2,19 @@ const express = require('express')
 const app = express()
 const path = require('path')
 const fs = require('fs')
+const cookies = require('cookie-parser')
+
+app.use(cookies())
 
 const getFile = async file => fs.readFileSync(path.join(`${__dirname}/client/${file}`))
 
-const connections = []
+const id = () => Buffer.from(
+    Math.floor(Math.random()* 9) + '' + Date.now()
+).toString('base64').replace(/\=/g,'')
+
+const connections = {}
+
+const messages = []
 
 const keyboard = res => {
     res.write(`
@@ -38,26 +47,17 @@ const keyboard = res => {
     res.write(`
         </div>
         <div class="key-row">
-        <button accesskey=" " class="spacebar"> </button>
+        <button accesskey=" " class="spacebar spacebar${res.num}"> </button>
+        <button accesskey="enter" class="submit submit${res.num}">Submit</button>
         </div>
         </div>
     `)
 }
 
-app.get('/send', async (req,res) => {
-    for (const i of connections){
-        refresh(i)
-        i.write(req.query.text)
-    }
-
-    res.write('')
-    res.end()
-})
-
 const inputs = res => {
     let styles = `
         <style>
-        .keys${res.num-1} {
+        .keys${res.num-1}, .log${res.num-1}, .input${res.num-1} {
             display: none !important;
             pointer-events: none !important;
         }
@@ -65,13 +65,17 @@ const inputs = res => {
 
     for (const i of 'abcdefghijklmnopqrstuvwxyz'.split('')) styles += `
         .${i+res.num}:focus, .${i+res.num}:active {
-            background-image: url('http://localhost:8000/send?text=${i}&=${res.num}');
+            background-image: url('http://localhost:8000/type?text=${i}&num=${res.num}');
         }
     `
 
     styles += `
-        .spacebar:focus, .spacebar:active {
-            background-image: url('http://localhost:8000/send?text=%20');
+        .spacebar${res.num}:focus, .spacebar${res.num}:active {
+            background-image: url('http://localhost:8000/type?text=%20&num=${res.num}'); 
+        }
+
+        .submit${res.num}:focus, .submit${res.num}:active {
+            background-image: url('http://localhost:8000/submit?num=${res.num}');
         }
     `
 
@@ -80,16 +84,78 @@ const inputs = res => {
     res.write(styles)
 }
 
-const refresh = res => {
+const refresh = ({req,res}) => {
     res.num = res.num || 0
     res.num++
 
     keyboard(res)
     inputs(res)
+
+    res.write(`
+        <div class="input input${res.num}">${
+            connections[req.cookies.chat_id].input
+        }</div>
+    `)
+
+    res.write(`
+        <div class="log log${res.num}">
+    `)
+
+    for (const i of messages) {
+        res.write(`
+            <span class="message"><span class="username">${i.id}:</span> ${i.message}<br></span>
+        `)
+    } 
+
+    res.write(`
+        </div>
+    `)
 }
 
+app.get('/type', async (req,res) => {
+    const connection = connections[req.cookies.chat_id]
+    connection.input += req.query.text
+
+    refresh(connection)
+
+    res.write('')
+    res.end()
+})
+
+app.get('/submit', async (req,res) => {
+    const _id = req.cookies.chat_id
+    const connection = connections[_id]
+
+    messages.push({
+        id: _id,
+        message: connection.input
+    })
+
+    if (messages.length > 50) 
+        messages.splice(0,1)
+
+    connections[_id].input = ''
+
+    for (const [_id, i] of Object.entries(connections))
+        refresh(i)
+
+    res.write('')
+    res.end()
+})
+
 app.get('/', async (req,res) => {
-    connections.push(res)
+    let _id = req.cookies.chat_id || id()
+
+    if (!req.cookies.chat_id) {
+        res.cookie('chat_id', _id)
+        req.cookies.chat_id = _id
+    }
+
+    connections[_id] = {
+        req,
+        res,
+        input: ''
+    }
 
     res.setHeader('Content-Type', 'text/html')
     res.header('Transfer-encoding', 'chunked')
@@ -106,7 +172,7 @@ app.get('/', async (req,res) => {
 
     res.flushHeaders()
 
-    refresh(res)
+    refresh({req,res})
 
     setInterval(() => {
         res.write('')
@@ -114,7 +180,7 @@ app.get('/', async (req,res) => {
 })
 
 app.get('/main.css', (req,res) => {
-    res.sendFile(getFile('main.css'));
+    res.sendFile(getFile('main.css'))
 })
 
 const server = app.listen('8000')

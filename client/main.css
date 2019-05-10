@@ -2,10 +2,11 @@
     padding: 0;
     margin: 0;
     font-family: sans-serif;
+    font-weight: 200;
 }
 
 body {
-    background-color: rgb(20,20,20);
+    background-color: rgb(35,35,35);
     color: white;
     white-space: nowrap;
 }
@@ -19,12 +20,11 @@ body {
 .keys button {
     width: 9vw;
     height: 9vw;
-    max-width: 5em;
-    max-height: 5em;
-    background-color: rgb(40,40,40);
+    background-color: rgb(50,50,50);
     color: white;
     border: none;
-    border: 1px solid rgb(20,20,20);
+    border: 1px solid rgb(35,35,35);
+    font-size: 1.4em;
 }
 
 .keys button:hover {
@@ -38,5 +38,84 @@ body {
 
 .keys .spacebar {
     width: 45vw;
-    max-width: 25em;
+}
+
+.keys .submit {
+    width: 18vw;
+}
+
+.log {
+    font-size: 1.3em;
+    padding: 1em;
+    line-height: 1.5em;
+    max-height: calc(100vh - 44vw);
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-end;
+    width: 100vw;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.input {
+    position: absolute;
+    bottom: 36vw;
+    height: 9vw;
+    padding: 0 1vw;
+    display: flex;
+    max-width: 100%;
+    box-sizing: border-box;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 1.2em;
+}
+
+@keyframes caret {
+    0%,50% {
+        background-color: white;
+    }
+
+    51%,100% {
+        background-color: transparent;
+    }
+}
+
+.input::after {
+    height: 1em;
+    width: 7px;
+    background-color: white;
+    content: '';
+    animation: infinite caret 0.9s;
+    margin-left: 4px;
+    transition: background-color 0s;
+}
+
+.username {
+    opacity: 0.7;
+}
+
+@media (min-width: 600px) {
+    .keys button {
+        width: 3em;
+        height: 3em;
+    }
+
+    .keys .spacebar {
+        width: 15em;
+    }
+    
+    .keys .submit {
+        width: 6em;
+    }
+
+    .input {
+        height: 3em;
+        bottom: 14em;
+    }
+
+    .log {
+        max-height: calc(100vh - 15em);
+    }
 }
