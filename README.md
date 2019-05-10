@@ -18,7 +18,7 @@ yarn
 yarn start
 ```
 
-# Notes
+# notes
 
 - hold alt+shift to type with keyboard (some keys reserved by browser)
 - enter key won't work
