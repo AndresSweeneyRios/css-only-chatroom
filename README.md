@@ -1,8 +1,8 @@
 # prerequisites
-- recent installation of Node.js
+- recent installation of node.js
 - npm/yarn
 
-# Setup
+# setup
 
 ### npm
 
